@@ -1,0 +1,8 @@
+.nav-link {
+  transition: all 0.3s ease; /* Transición suave al cambiar estados */
+}
+
+.nav-link.active {
+  font-weight: 700;  /* 700 = bold (más específico que 'bold') */
+  transform: scale(1.03);  /* Efecto de zoom leve (opcional) */
+}

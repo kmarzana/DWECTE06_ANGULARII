@@ -1,0 +1,98 @@
+<!-- One of the most popular websites at NASA is the Astronomy Picture of the Day. In fact, this website is one of the most
+popular websites across all federal agencies. It has the popular appeal of a Justin Bieber video. This endpoint
+structures the APOD imagery and associated metadata so that it can be repurposed for other applications. In addition, if
+the concept_tags parameter is set to True, then keywords derived from the image explanation are returned. These keywords
+could be used as auto-generated hashtags for twitter or instagram feeds; but generally help with discoverability of
+relevant imagery.
+
+The full documentation for this API can be found in the APOD API Github repository (https://github.com/nasa/apod-api). -->
+
+<div class="apod-component-main-container">
+    <!-- Info card -->
+    <div class="container my-4 g-3 apod-component-info-container">
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body text-center p-4">
+                <h2 class="card-title h5 mb-3 text-danger">Mars Rovers</h2>
+                <p class="card-text mb-3 small">
+                    Descubre la imagen astronómica del día (Astronomy Picture of the Day) de la NASA. Una ventana al
+                    universo con fotos espectaculares de galaxias, nebulosas y eventos cósmicos, acompañadas de
+                    explicaciones científicas. ¡Inspírate con el cosmos cada día!
+                </p>
+                <a href="https://apod.nasa.gov/apod/astropix.html" target="_blank"
+                    class="btn btn-sm btn-outline-danger mt-2">Mas información</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor principal de la tarjeta -->
+    <div class="container-fluid g-3 apod-component-card-container">
+
+        <!-- Cabecera de la tarjeta -->
+        <div class="card mb-3 shadow">
+            <div class="card-header d-flex justify-content-between">
+                {{ title }}
+                <div *ngIf="apodData.media_type" class="badge bg-white text-dark border shadow">
+                    {{ apodData.media_type }}
+                </div>
+            </div>
+
+            <!-- Elemento para mostrar -->
+            <figure class="position-relative p-1">
+
+                <!-- Imagen -->
+                <div *ngIf="apodData.media_type === 'image'">
+                    <img [src]="apodData.url" class="figure-img img-fluid rounded border border-5 w-100"
+                        [alt]="apodData.title">
+                    <a *ngIf="apodData.hdurl" [href]="apodData.hdurl" target="_blank" type="button"
+                        class="position-absolute btn btn-outline-secondary btn-sm hd-btn apod-hd-link">
+                        HD
+                    </a>
+                    <figcaption *ngIf="apodData.copyright" class="figure-caption text-start ms-3">
+                        📷 - {{ apodData.copyright }}
+                    </figcaption>
+                </div>
+
+                <!-- Video -->
+                <div *ngIf="apodData.media_type === 'video'">
+                    <img [src]="apodData.thumbnail_url"
+                        class="card-img-top border border-2figure-img img-fluid rounded border border-5 w-100"
+                        [alt]="apodData.title">
+                    <a [href]="apodData.url" target="_blank" type="button"
+                        class="btn btn-outline-secondary btn-sm hd-btn">
+                        PLAY
+                    </a>
+                    <figcaption *ngIf="apodData.copyright">
+                        🎥 - {{ apodData.copyright }}
+                    </figcaption>
+                </div>
+            </figure>
+
+            <!-- Cuerpo de la tarjeta -->
+            <div class="card-body">
+                <h5 class="card-title">
+                    {{ apodData.title }}
+                </h5>
+                <p class="card-text">
+                    {{ apodData.explanation }}
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <span class="fw-bold">Publication date: </span>
+                        {{ apodData.date }}
+                    </small>
+                </p>
+                <p *ngIf="isRandom" class="card-text">
+                    <a (click)="loadTodayAPOD()" class="text-decoration-underline apod-return">
+                        Return to today's {{ title }}
+                    </a>
+                </p>
+
+                <!-- Añadimos en el mismo cuerpo la posibilidad de cargar APODs aleatorios -->
+                <button (click)="loadRandomAPOD()" class="btn btn-primary w-100 shadow">
+                    Random {{ title }}
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>

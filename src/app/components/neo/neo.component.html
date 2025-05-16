@@ -1,0 +1,256 @@
+<!-- Welcome to JPL’s SSD (Solar System Dynamics) and CNEOS (Center for Near-Earth Object Studies) API (Application Program
+Interface) service. This service provides an interface to machine-readable data (JSON-format) related to SSD and
+CNEOS.If you are looking for human-readable data, please go to the main websites for SSD and/or CNEOS. For further
+information on this API and its component services, please visit the JPL SSD/CNEOS API main website or contact
+contact-ssd-api@jpl.nasa.gov. 
+
+https://api.nasa.gov/-->
+
+<div class="neo-component-main-container">
+    <!-- Info card -->
+    <div class="container my-4 g-3 neo-component-info-container">
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body text-center p-4">
+                <h2 class="card-title h5 mb-3 text-danger">NEO Project</h2>
+                <p class="card-text mb-3 small">
+                    Plataforma innovadora para rastrear <strong>Objetos Cercanos a la Tierra</strong> (NEOs),
+                    combinando inteligencia artificial y ciencia ciudadana para monitorizar asteroides y cometas.
+                </p>
+                <p class="card-text mb-0 small">
+                    ¡Explora datos en tiempo real y contribuye a la defensa planetaria!
+                </p>
+                <a href="https://es.wikipedia.org/wiki/Objeto_pr%C3%B3ximo_a_la_Tierra" target="_blank"
+                    class="btn btn-sm btn-outline-danger mt-2">Saber más</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="container-fluid g-3 neo-component-card-container">
+
+        <h5 *ngIf="!isFiltered" class="ms-2 mb-3">Objetos NEO listados: {{ neoData.length }} </h5>
+        <h5 *ngIf="isFiltered" class="ms-2 mb-3">Objetos NEO listados: {{ filteredNeo.length }} </h5>
+
+        <!-- Filtro y contador de peligrosidad del neo -->
+        <div class="container-fluid g-3 mb-3">
+            <div class="d-flex flex-wrap gap-1 align-items-center justify-content-start danger-filter-btns">
+                <button (click)="filterByDanger('Muy Alta')"
+                    class="btn border border-1 bg-danger bg-opacity-75 shadow-sm">
+                    Peligrosidad muy alta: {{ getDangerCount('Muy Alta') }}
+                </button>
+                <button (click)="filterByDanger('Alta')" class="btn border border-1 bg-danger bg-opacity-50 shadow-sm">
+                    Peligrosidad alta: {{ getDangerCount('Alta') }}
+                </button>
+                <button (click)="filterByDanger('Moderada')"
+                    class="btn border border-1 bg-warning bg-opacity-75 shadow-sm">
+                    Peligrosidad moderada: {{ getDangerCount('Moderada') }}
+                </button>
+                <button (click)="filterByDanger('Media')"
+                    class="btn border border-1 bg-warning bg-opacity-50 shadow-sm">
+                    Peligrosidad media: {{ getDangerCount('Media') }}
+                </button>
+                <button (click)="filterByDanger('Baja')" class="btn border border-1 bg-success bg-opacity-75 shadow-sm">
+                    Peligrosidad baja: {{ getDangerCount('Baja') }}
+                </button>
+                <button (click)="filterByDanger('Muy Baja')"
+                    class="btn border border-1 bg-success bg-opacity-50 shadow-sm">
+                    Peligrosidad muy baja: {{ getDangerCount('Muy Baja') }}
+                </button>
+                <button (click)="filterByDanger('Impacto confirmado')"
+                    class="btn border border-1 bg-secondary bg-opacity-75 shadow-sm">
+                    Impactado: {{ getDangerCount('Impacto confirmado') }}
+                </button>
+                <button *ngIf="isFiltered" (click)="resetIsFiltered()"
+                    class="btn border border-1 btn-outline-info shadow-sm">
+                    Mostrar todos ( {{ neoData.length }} )
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtro para seleccionar una acción sobre la tabla -->
+        <div class="mb-3">
+            <label for="action-select" class="form-label">
+                Seleccionar acción
+            </label>
+            <select name="action-select" class="form-select shadow" [(ngModel)]="selectedAction">
+                <option value="" selected>
+                    -- Seleccionar --
+                </option>
+                <option value="eliminar_registro">
+                    Eliminar registro
+                </option>
+                <option value="modificar_registro">
+                    Modificar registro
+                </option>
+                <option value="crear_registro">
+                    Crear registro
+                </option>
+            </select>
+        </div>
+
+        <!-- Borrado de registro -->
+        <div *ngIf="selectedAction === 'eliminar_registro'" class="mb-3 d-flex gap-3">
+            <input type="text" class="form-control w-25 border border-3" placeholder="Identificador"
+                [(ngModel)]="deleteId">
+            <button (click)="confirmarBorrado()" class="btn btn-danger">
+                Eliminar registro
+            </button>
+            <button *ngIf="checkDelete" (click)="onDeleteNeo()" class="btn btn-outline-danger">
+                Confirmar el borrado del registro {{ deleteId }}
+            </button>
+        </div>
+
+        <!-- Mensaje borrado success -->
+        <div *ngIf="showDeleteSuccess" class="alert alert-success ms-2" role="alert">
+            {{ deleteMessage }}
+        </div>
+
+        <!-- Mensaje borrado fail -->
+        <div *ngIf="showDeleteFail" class="alert alert-danger ms-2" role="alert">
+            {{ deleteMessage }}
+        </div>
+
+        <!-- -------------------------------------------------------------------------------------- -->
+
+        <!-- Modificación de registro -->
+        <div *ngIf="selectedAction === 'modificar_registro'" class="mb-3 d-flex gap-3">
+            <input type="text" class="form-control w-25 border border-3 shadow" placeholder="Identificador"
+                [(ngModel)]="selectedId">
+
+            <select class="form-select w-25 shadow" [(ngModel)]="neoToUpdate.peligrosidad" name="peligrosidad">
+                <option value="" selected>-- Seleccionar peligrosidad --</option>
+                <option value="Muy Alta">Muy Alta</option>
+                <option value="Alta">Alta</option>
+                <option value="Moderada">Moderada</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+                <option value="Muy Baja">Muy Baja</option>
+                <option value="Impacto confirmado">Impacto confirmado</option>
+            </select>
+
+            <button (click)="onUpdateNeo()" class="btn btn-danger w-50 shadow">
+                Modificar registro
+            </button>
+        </div>
+
+        <!-- Mensaje update success -->
+        <div *ngIf="showUpdateSuccess" class="alert alert-success ms-2" role="alert">
+            {{ updateMessage }}
+        </div>
+
+        <!-- Mensaje update fail -->
+        <div *ngIf="showUpdateFail" class="alert alert-danger ms-2" role="alert">
+            {{ updateMessage }}
+        </div>
+
+        <!-- -------------------------------------------------------------------------------------- -->
+
+        <!-- Mostramos la tabla con la información de los neos disponnibles -->
+        <table *ngIf="!isFiltered" class="table table-striped table-hover table-bordered shadow border border-5">
+            <thead>
+                <tr class="small">
+                    <th scope="col" class="p-3">Identificador</th>
+                    <th scope="col" class="p-3">Nombre</th>
+                    <th scope="col" class="p-3">Diámetro (m)</th>
+                    <th scope="col" class="p-3">Velocidad (km/s)</th>
+                    <th scope="col" class="p-3">Próximo acercamiento</th>
+                    <th scope="col" class="p-3">Peligrosidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let neo of neoData" class="no-wrap">
+                    <td>{{ neo.id }}</td>
+                    <td>{{ neo.nombre }}</td>
+                    <td>{{ neo.diametro_estimado }}</td>
+                    <td>{{ neo.velocidad_relativa }}</td>
+                    <td>
+                        {{ isPastDate(neo.fecha_aproximacion_cercana) ? '✅ Pasó' : neo.fecha_aproximacion_cercana }}
+                    </td>
+                    <td class="text-center">
+                        <span *ngIf="neo.peligrosidad === 'Muy Alta'" class="badge bg-danger py-2 bg-opacity-75 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Alta'" class="badge bg-danger py-2 bg-opacity-50 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Media'" class="badge bg-warning py-2 bg-opacity-75 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Moderada'" class="badge bg-warning py-2 bg-opacity-50 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Baja'" class="badge bg-success py-2 bg-opacity-75 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Muy Baja'" class="badge bg-success py-2 opacity-50 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Impacto confirmado'"
+                            class="badge bg-secondary py-2 bg-opacity-75">
+                            Impactado
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Subir al inicio de la página que se usará si la tabla es muy larga -->
+        <a *ngIf="!isFiltered" (click)="toUp()" class="text-decoration-underline neo-up ms-2">
+            Subir
+        </a>
+
+        <!-- Mostramos la tabla filtrada con la información de los neos seleccionados -->
+        <table *ngIf="isFiltered" class="table table-striped table-hover table-bordered shadow border border-5">
+            <thead>
+                <tr class="small">
+                    <th scope="col" class="p-3">Identificador</th>
+                    <th scope="col" class="p-3">Nombre</th>
+                    <th scope="col" class="p-3">Diámetro (m)</th>
+                    <th scope="col" class="p-3">Velocidad (km/s)</th>
+                    <th scope="col" class="p-3">Próximo acercamiento</th>
+                    <th scope="col" class="p-3">Peligrosidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let neo of filteredNeo" class="no-wrap">
+                    <td>{{ neo.id }}</td>
+                    <td>{{ neo.nombre }}</td>
+                    <td>{{ neo.diametro_estimado }}</td>
+                    <td>{{ neo.velocidad_relativa }}</td>
+                    <td>
+                        {{ isPastDate(neo.fecha_aproximacion_cercana) ? '✅ Pasó' : neo.fecha_aproximacion_cercana }}
+                    </td>
+                    <td class="text-center">
+                        <span *ngIf="neo.peligrosidad === 'Muy Alta'" class="badge bg-danger py-2 bg-opacity-75 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Alta'" class="badge bg-danger py-2 bg-opacity-50 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Media'" class="badge bg-warning py-2 bg-opacity-75 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Moderada'" class="badge bg-warning py-2 bg-opacity-50 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Baja'" class="badge bg-success py-2 bg-opacity-75 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Muy Baja'" class="badge bg-success py-2 opacity-50 w-75">
+                            {{ neo.peligrosidad }}
+                        </span>
+                        <span *ngIf="neo.peligrosidad === 'Impacto confirmado'"
+                            class="badge bg-secondary py-2 bg-opacity-75">
+                            Impactado
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Subir al inicio de la página que se usará si la tabla es muy larga -->
+        <a *ngIf="isFiltered" (click)="toUp()" class="text-decoration-underline neo-up ms-2">
+            Subir
+        </a>
+    </div>
+</div>

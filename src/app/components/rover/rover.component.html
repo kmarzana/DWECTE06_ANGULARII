@@ -1,0 +1,258 @@
+<!-- This API is designed to collect image data gathered by NASA's Curiosity, Opportunity, and Spirit rovers on Mars and make
+it more easily available to other developers, educators, and citizen scientists. This API is maintained by Chris Cerami.
+
+Each rover has its own set of photos stored in the database, which can be queried separately. There are several possible
+queries that can be made against the API. Photos are organized by the sol (Martian rotation or day) on which they were
+taken, counting up from the rover's landing date. A photo taken on Curiosity's 1000th Martian sol exploring Mars, for
+example, will have a sol attribute of 1000. If instead you prefer to search by the Earth date on which a photo was
+taken, you can do that, too.
+
+Along with querying by date, results can also be filtered by the camera with which it was taken and responses will be
+limited to 25 photos per call. Queries that should return more than 25 photos will be split onto several pages, which
+can be accessed by adding a 'page' param to the query. 
+
+https://api.nasa.gov/-->
+
+<div class="rover-component-main-container">
+
+<!-- Info card -->
+<div class="container my-4 g-3 rover-component-info-container">
+    <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body text-center p-4">
+            <h2 class="card-title h5 mb-3 text-danger">Mars Rovers</h2>
+            <p class="card-text mb-3 small">
+                Explora las imágenes capturadas por los rovers de la NASA en Marte: <strong>Curiosity, Perseverance,
+                    Opportunity y Spirit</strong>.
+                Accede a fotos históricas, datos científicos y sigue sus descubrimientos en tiempo casi real.
+            </p>
+            <a href="https://es.wikipedia.org/wiki/Mars_Exploration_Rovers" target="_blank"
+                class="btn btn-sm btn-outline-danger mt-2">Mas información</a>
+        </div>
+    </div>
+</div>
+
+<!-- Contenedor principal -->
+<div class="container-fluid g-3 rover-component-card-container">
+
+    <div class="row g-3 mb-3">
+
+        <!-- Selección del Rover -->
+        <div class="col-md-6 col-12">
+            <label for="rover-select" class="form-label">
+                Seleccionar Rover
+            </label>
+            <select name="rover-select" class="form-select shadow" [(ngModel)]="selectedRover"
+                (change)="loadRoverManifest()">
+                <option value="" selected>
+                    -- Seleccionar --
+                </option>
+                <option *ngFor="let roverName of roverNames" [value]="roverName">
+                    {{ roverName | titlecase }}
+                </option>
+            </select>
+        </div>
+
+        <!-- Selección de Sol -->
+        <div class="col-md-6 col-12">
+            <label for="sol-input" class="form-label">
+                Seleccionar Sol
+            </label>
+            <input [disabled]="!selectedRover" type="number" class="form-control shadow" [(ngModel)]="selectedSol"
+                (change)="resetLoaded()" (keyup.enter)="loadRoverImages()" min="0">
+        </div>
+    </div>
+
+    <!-- Check para mostrar / ocultar el manifiesto del Rover seleccionado -->
+    <div class="form-check form-check-inline col-12 mb-3">
+        <input [disabled]="!selectedRover" class="form-check-input" type="checkbox" [checked]="showManifest"
+            (change)="showManifest = !showManifest">
+        <label for="manifest-check" class="form-check-label">
+            Mostrar manifiesto
+        </label>
+    </div>
+
+    <!-- Botón para mostrar las fotos según el Rover y el Sol seleccionado -->
+    <button type="button" [disabled]="!selectedRover" class="btn btn-primary col-12 col-md-4 mb-3 shadow"
+        (click)="loadRoverImages()" (keyup.enter)="loadRoverImages()">
+        Mostrar
+    </button>
+
+    <!-- Alerta: El repositorio de imágenes de los rovers Opportunity y Spirit no están disponibles -->
+    <div *ngIf="selectedRover === 'opportunity' || selectedRover === 'spirit'" class="alert alert-danger shadow"
+        role="alert">
+        El repositorio de imagenes del rover
+        <span class="fw-bold">
+            {{ selectedRover | titlecase }}
+        </span>
+        no está disponible y no se mostrarán.
+    </div>
+
+    <!-- Alerta: Cuando el sol seleccionado no tiene ninguna ficha de fotos -->
+    <div *ngIf="loaded && loadedRoverImages.length === 0" class="alert alert-info shadow" role="alert">
+        Las fichas de imagenes del rover
+        <span class="fw-bold">
+            {{ selectedRover | titlecase }}
+        </span>
+        correspondientes al sol
+        <span class="fw-bold">
+            {{ selectedSol }}
+        </span>
+        no están disponibles.
+    </div>
+
+    <!-- Tarjeta que muestra el manifiesto de fotos del rover seleccionado -->
+    <div *ngIf="showManifest" class="card mb-3 col-12">
+        <div class="card-header">
+            {{ selectedRover | titlecase }}
+        </div>
+
+        <div class="card-body text-secondary d-flex justify-content-between shadow">
+            <ul class="list-unstyled w-75 fw-bold">
+                <li>Fecha de lanzamiento:</li>
+                <hr>
+                <li>Fecha de aterrizaje:</li>
+                <hr>
+                <li>Estado de la misión:</li>
+                <hr>
+                <li>Sol max:</li>
+                <hr>
+                <li>Fecha de la última actualización:</li>
+                <hr>
+                <li>Fotos totales:</li>
+                <hr>
+            </ul>
+            <ul class="list-unstyled w-25 fst-italic">
+                <li>
+                    {{ roverManifest.launch_date }}
+                </li>
+                <hr>
+                <li>
+                    {{ roverManifest.landing_date }}
+                </li>
+                <hr>
+                <li>
+                    <span *ngIf="roverManifest.status === 'active'" class="badge bg-success">
+                        Activo
+                    </span>
+                    <span *ngIf="roverManifest.status === 'complete'" class="badge bg-danger">
+                        Completado
+                    </span>
+                </li>
+                <hr>
+                <li>
+                    {{ roverManifest.max_sol }}
+                </li>
+                <hr>
+                <li>
+                    {{ roverManifest.max_date }}
+                </li>
+                <hr>
+                <li>
+                    {{ roverManifest.total_photos }}
+                </li>
+                <hr>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Información sobre las fotos disponibles, el nombre del Rover y el Sol seleccionado -->
+    <div *ngIf="selectedRover" class="text-end">
+        <small class="me-2">
+            <span class="border border-1 py-1 px-2 rounded me-2 bg-white shadow">
+                {{ selectedRover | titlecase }}
+            </span>
+            <span class="border border-1 py-1 px-2 rounded me-2 bg-white shadow">
+                Sol actual: {{ selectedSol }}
+            </span>
+            <span class="border border-1 py-1 px-2 rounded me-2 bg-white shadow">
+                Sol max: {{ roverManifest?.max_sol }}
+            </span>
+        </small>
+        <hr>
+    </div>
+
+    <!-- Paginación superior -->
+    <nav *ngIf="selectedRover && loadedRoverImages.length" class="ms-2">
+        <ul class="pagination">
+            <li class="page-item disabled" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="prevPage()">
+                    Previous
+                </a>
+            </li>
+            <li class="page-item" [class.disabled]="true"><a class="page-link" [class.fw-bold]="currentPage === 1">
+                    {{ currentPage < 4 ? 1 : (currentPage -2) }} </a>
+            </li>
+            <li class="page-item" [class.disabled]="true"><a class="page-link" [class.fw-bold]="currentPage === 2">
+                    {{ currentPage < 4 ? 2 : (currentPage -1) }} </a>
+            </li>
+            <li class="page-item" [class.disabled]="true"><a class="page-link" [class.fw-bold]="currentPage > 2">
+                    {{ currentPage < 4 ? 3 : currentPage }} </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" (click)="nextPage()" [class.disabled]="loadedRoverImages.length < 25">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Tarjetas contenedoras de fotos -->
+    <div class="container-fluid g-3 mb-3">
+        <div class="row row-cols-1 row-cols-md-3 g-3">
+            <div *ngFor="let item of loadedRoverImages" class="col d-flex">
+                <div class="card w-100 shadow">
+                    <div class="position-relative">
+                        <img [src]="item.img_src" class="card-img-top"
+                            [alt]="selectedRover + '_' + item.id + '_' + selectedSol">
+                        <i class="bi bi-camera bg-transparent position-absolute top-0 start-0 m-2 text-white p-1 opacity-0 hover-opacity-100"
+                            (click)="openPhotoInNewTab(item.img_src)"></i>
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text small mt-auto">
+                            <span class="fst-italic fw-bold">
+                                ID:
+                            </span> {{ item.id }} <br>
+                            <span class="fst-italic fw-bold">
+                                Fecha terrestre:
+                            </span> {{ item.earth_date }} <br>
+                            <span class="fst-italic fw-bold">
+                                Sol:
+                            </span> {{ item.sol }} <br>
+                            <span class="fst-italic fw-bold">
+                                Cámara:
+                            </span> {{ item.camera.full_name }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación inferior -->
+    <nav *ngIf="selectedRover && loadedRoverImages.length" class="me-2">
+        <ul class="pagination justify-content-end">
+            <li class="page-item disabled" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="prevPage()">
+                    Previous
+                </a>
+            </li>
+            <li class="page-item" [class.disabled]="true"><a class="page-link" [class.fw-bold]="currentPage === 1"
+                    disabled>
+                    {{ currentPage < 4 ? 1 : (currentPage -2) }} </a>
+            </li>
+            <li class="page-item" [class.disabled]="true"><a class="page-link" [class.fw-bold]="currentPage === 2">
+                    {{ currentPage < 4 ? 2 : (currentPage -1) }} </a>
+            </li>
+            <li class="page-item" [class.disabled]="true"><a class="page-link" [class.fw-bold]="currentPage > 2">
+                    {{ currentPage < 4 ? 3 : currentPage }} </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" (click)="nextPage()" [class.disabled]="loadedRoverImages.length < 25">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</div>

@@ -1,0 +1,35 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-lg">
+    <div class="container-fluid" style="max-width: 1100px;">
+        <a class="navbar-brand" href="#">Astrogune</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse ms-5" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+                    class="nav-link">Home</a>
+
+                <a [routerLink]="['/apod']" routerLinkActive="active" class="nav-link ms-4">APOD</a>
+
+                <a [routerLink]="['/rover']" routerLinkActive="active" class="nav-link ms-4">Mars Rovers</a>
+
+                <a [routerLink]="['/neo']" routerLinkActive="active" class="nav-link ms-4">NEO Project</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<router-outlet></router-outlet>
+
+<footer class="navbar navbar-light bg-light mt-5 py-3 fixed-bottom shadow-lg">
+    <div class="container-fluid" style="max-width: 1100px;">
+        <div class="w-100 d-flex justify-content-between align-items-center">
+            <span class="navbar-brand mb-0">Astrogune</span><br>
+            <div class="text-end">
+                <span class="small text-muted">Tarea de Evaluación BirtLH - DWEC: TE06</span><br>
+                <span class="small text-muted">© 2025 Koldobika Gorka Marzana San Vicente</span>
+            </div>
+        </div>
+    </div>
+</footer>

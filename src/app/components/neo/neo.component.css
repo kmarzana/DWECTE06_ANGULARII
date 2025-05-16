@@ -1,0 +1,20 @@
+.neo-component-main-container {
+    margin-bottom: 8rem;
+    margin-top: 5rem;
+}
+
+.neo-component-info-container {
+    max-width: 1100px;
+}
+
+.neo-component-card-container {
+    max-width: 900px;
+}
+
+.danger-filter-btns button {
+    font-size: 0.7rem;
+}
+
+.neo-up {
+    cursor: pointer;
+}
